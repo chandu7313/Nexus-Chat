@@ -63,7 +63,7 @@ const Dashboard = () => {
         </div>
         <div className='flex gap-4 justify-start items-center cursor-pointer w-full p-7'>
             {dashOptions[5].icon}
-            <h3 className='text-xs font-bold'>{dashOptions[5].optionName}</h3>
+            <h3 className='text-xs font-bold'  onClick={()=> logout()}>{dashOptions[5].optionName}</h3>
         </div>
     </div>
   )
