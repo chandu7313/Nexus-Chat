@@ -1,1 +1,2 @@
-# KisanMitra
+# Nexus Chat application
+
