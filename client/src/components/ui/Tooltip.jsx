@@ -5,12 +5,14 @@ const Tooltip = ({
   children, 
   content, 
   position = 'top', 
-  delay = 200 
+  delay = 200,
+  disabled = false
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   let timeout;
   
   const showTooltip = () => {
+    if (disabled) return;
     timeout = setTimeout(() => setIsVisible(true), delay);
   };
   
@@ -35,25 +37,27 @@ const Tooltip = ({
       {children}
       
       <AnimatePresence>
+        {!disabled && isVisible && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.15 }}
-            className={`absolute ${positions[position]} z-50 whitespace-nowrap px-3 py-1.5 rounded-lg text-sm pointer-events-none bg-slate-800 text-white shadow-md border border-slate-700`}
+            className={`absolute ${positions[position]} z-50 whitespace-nowrap px-2.5 py-1 rounded-md text-xs font-medium pointer-events-none bg-slate-900 text-slate-100 shadow-xl border border-white/10 backdrop-blur-sm`}
           >
             {content}
             
             {/* Arrow */}
             <div 
-              className={`absolute w-2 h-2 rotate-45 bg-slate-800 border-slate-700 ${
-                position === 'top' ? 'bottom-[-5px] left-1/2 -translate-x-1/2 border-b border-r' :
-                position === 'bottom' ? 'top-[-5px] left-1/2 -translate-x-1/2 border-t border-l' :
-                position === 'left' ? 'right-[-5px] top-1/2 -translate-y-1/2 border-t border-r' :
-                'left-[-5px] top-1/2 -translate-y-1/2 border-b border-l'
+              className={`absolute w-1.5 h-1.5 rotate-45 bg-slate-900 border-white/10 ${
+                position === 'top' ? 'bottom-[-3px] left-1/2 -translate-x-1/2 border-b border-r' :
+                position === 'bottom' ? 'top-[-3px] left-1/2 -translate-x-1/2 border-t border-l' :
+                position === 'left' ? 'right-[-3px] top-1/2 -translate-y-1/2 border-t border-r' :
+                'left-[-3px] top-1/2 -translate-y-1/2 border-b border-l'
               }`}
             />
           </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

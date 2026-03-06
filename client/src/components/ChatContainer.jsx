@@ -88,14 +88,43 @@ const ChatContainer = () => {
 
   if (!selectedUser) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center h-full bg-gray-50 text-gray-400">
-        <div className="w-64 h-64 mb-8 bg-blue-100/50 rounded-full flex items-center justify-center">
-          <img src={assets.nexusLogo} className="w-32 opacity-20 grayscale" alt="Nexus" />
+      <div className="flex-1 flex flex-col items-center justify-center h-full bg-slate-50/50 text-slate-400 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-indigo-500/5 rounded-full blur-3xl animate-pulse" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Nexus Chat Ready</h2>
-        <p className="max-w-sm">
-          Select a conversation to start messaging
-        </p>
+
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="relative w-72 h-72 mb-12 flex items-center justify-center">
+            {/* Rotating Circles */}
+            <div className="absolute inset-0 border-2 border-dashed border-slate-200 rounded-full animate-spin-slow opacity-50" />
+            <div className="absolute inset-8 border border-slate-200 rounded-full animate-reverse-spin-slow opacity-30" />
+            
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-blue-500/10 border border-slate-100"
+            >
+              <img src={assets.nexusLogo} className="w-32 hover:scale-105 transition-transform duration-500" alt="Nexus" />
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="text-center"
+          >
+            <h2 className="text-3xl font-bold mb-3 text-slate-800 tracking-tight">Nexus Chat Ready</h2>
+            <div className="w-12 h-1 bg-blue-500 rounded-full mx-auto mb-4 opacity-50" />
+            <p className="max-w-xs text-slate-500 font-medium leading-relaxed">
+              Connect with your team instantly. <br />
+              Select a conversation to start messaging.
+            </p>
+          </motion.div>
+        </div>
       </div>
     )
   }
