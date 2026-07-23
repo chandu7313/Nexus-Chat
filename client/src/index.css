@@ -2,6 +2,40 @@
 
 @import "tailwindcss";
 
+@theme {
+  --color-surface: #f5faff;
+  --color-surface-dim: #d1dbe4;
+  --color-surface-bright: #f5faff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eaf5fe;
+  --color-surface-container: #e5eff8;
+  --color-surface-container-high: #dfeaf2;
+  --color-surface-container-highest: #d9e4ec;
+  --color-on-surface: #131d23;
+  --color-on-surface-variant: #3c4a3d;
+  --color-inverse-surface: #283238;
+  --color-inverse-on-surface: #e8f2fb;
+  --color-outline: #6c7b6b;
+  --color-outline-variant: #bbcbb9;
+  --color-surface-tint: #006d2f;
+  
+  --color-primary: #006d2f;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #25d366;
+  --color-on-primary-container: #005523;
+  --color-inverse-primary: #3de273;
+  
+  --color-secondary: #00668a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #49c4ff;
+  --color-on-secondary-container: #004f6c;
+  
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+}
+
 /* ==================== Base Styles ==================== */
 * {
   font-family: 'Inter', sans-serif;
@@ -9,10 +43,8 @@
 }
 
 body {
-  background-color: #f3f4f6;
-  /* bg-gray-100 */
-  color: #1f2937;
-  /* text-gray-800 */
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

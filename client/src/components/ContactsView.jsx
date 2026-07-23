@@ -1,24 +1,46 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useMemo } from 'react'
 import { ChatContext } from '../../context/ChatContext'
 import { AuthContext } from '../../context/AuthContext'
+import { useChats } from '../api/queries'
 import assets from '../assets/assets'
 import { IoSearch, IoPersonAddOutline } from 'react-icons/io5'
 import { motion } from 'framer-motion'
+import AddContactModal from './AddContactModal'
+import { useNavigate } from 'react-router-dom'
 
-const ContactsView = () => {
-  const { users, setSelectedUser } = useContext(ChatContext)
-  const { onlineUsers } = useContext(AuthContext)
+const ContactsView = ({ setSelectedOption }) => {
+  const { setSelectedUser } = useContext(ChatContext)
+  const { authUser, onlineUsers } = useContext(AuthContext)
+  const { data: chats } = useChats()
   const [searchTerm, setSearchTerm] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const navigate = useNavigate()
 
-  const filteredUsers = users.filter(user => 
-    user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  const connectedUsers = useMemo(() => {
+    if (!chats) return []
+    const usersMap = new Map()
+    chats.forEach(chat => {
+      chat.participants.forEach(p => {
+        if (p.user && p.user.id !== authUser?.id) {
+          usersMap.set(p.user.id, p.user)
+        }
+      })
+    })
+    return Array.from(usersMap.values())
+  }, [chats, authUser])
+
+  const filteredUsers = connectedUsers.filter(user => 
+    user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleStartChat = (user) => {
     setSelectedUser(user)
+    if (setSelectedOption) setSelectedOption('CHAT')
   }
 
   return (
+    <>
     <div className='h-full flex flex-col bg-white overflow-hidden'>
       {/* Header Section */}
       <div className="p-8 pb-4">
@@ -27,7 +49,10 @@ const ContactsView = () => {
             <h1 className='text-2xl font-bold text-text-primary'>Contacts</h1>
             <p className='text-sm text-text-secondary mt-1'>Manage your connections and team members</p>
           </div>
-          <button className='flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-md hover:bg-primary-hover transition-all active:scale-95'>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className='flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-md hover:bg-primary-hover transition-all active:scale-95'
+          >
             <IoPersonAddOutline size={18} />
             <span>Add Contact</span>
           </button>
@@ -51,10 +76,10 @@ const ContactsView = () => {
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user, index) => {
-              const isOnline = onlineUsers.includes(user._id);
+              const isOnline = onlineUsers.includes(user.id);
               return (
                 <motion.div
-                  key={user._id}
+                  key={user.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
@@ -96,6 +121,16 @@ const ContactsView = () => {
         </div>
       </div>
     </div>
+
+    <AddContactModal 
+      isOpen={isModalOpen} 
+      onClose={() => setIsModalOpen(false)} 
+      onChatCreated={(chat) => {
+        setSelectedUser(chat);
+        if (setSelectedOption) setSelectedOption('CHAT');
+      }}
+    />
+    </>
   )
 }
 

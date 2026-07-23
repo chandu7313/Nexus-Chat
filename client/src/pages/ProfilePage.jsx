@@ -148,7 +148,7 @@ const ProfilePage = () => {
                 </form>
             </motion.div>
             
-            <p className="mt-8 text-xs text-text-muted opacity-50 font-medium">NexusID: {authUser._id}</p>
+            <p className="mt-8 text-xs text-text-muted opacity-50 font-medium">NexusID: {authUser.id}</p>
         </div>
     )
 }

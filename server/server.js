@@ -5,7 +5,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
-import User from "./models/User.js";
+import { prisma } from "./lib/db.js";
 import { Server } from "socket.io";
 
 const app = express()
@@ -39,7 +39,11 @@ io.on("connection", (socket) => {
     socket.on("disconnect", async () => {
         console.log("User disconnected: ", userId)
         if (userId) {
-            await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+            try {
+                await prisma.user.update({ where: { id: userId }, data: { lastSeen: new Date() } });
+            } catch (error) {
+                console.error("Error updating lastSeen:", error);
+            }
             delete userSocketMap[userId]
             io.emit("getOnlineUsers", Object.keys(userSocketMap))
         }
@@ -50,12 +54,13 @@ io.on("connection", (socket) => {
 app.use(express.json({ limit: '4mb' }))
 app.use(cors())
 
+import chatRouter from "./routes/chatRoutes.js";
+
 // Routes setup
 app.use("/api/status", (req, res) => res.send("Server is live"));
 app.use("/api/auth", userRouter);
-app.use("/api/messages", messageRouter)
-
-
+app.use("/api/messages", messageRouter);
+app.use("/api/chats", chatRouter);
 // Connect to MongoDB
 await connectDB();
 

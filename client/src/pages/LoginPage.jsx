@@ -9,6 +9,7 @@ import AnimatedAvatars from '../components/ui/AnimatedAvatars'
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign up")
   const [fullName, setFullName] = useState("")
+  const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [bio, setBio] = useState("")
@@ -24,7 +25,7 @@ const LoginPage = () => {
       return
     }
 
-    login(currState === "Sign up" ? 'signup' : 'login', { fullName, email, password, bio })
+    login(currState === "Sign up" ? 'signup' : 'login', { fullName, username, email, password, bio })
   }
 
   return (
@@ -87,7 +88,7 @@ const LoginPage = () => {
                   className='flex flex-col gap-1.5'
                 >
                   <label className='text-[10px] font-bold tracking-widest uppercase text-gray-500 ml-1'>
-                    Full Identity
+                    Full Name
                   </label>
                   <div className='relative flex items-center'>
                     <IoPersonCircle size={20} className="absolute left-4 text-gray-400" />
@@ -96,7 +97,21 @@ const LoginPage = () => {
                       value={fullName}
                       type="text" 
                       className='w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:font-normal placeholder:text-gray-400'
-                      placeholder="Your amazing name" 
+                      placeholder="Your Name" 
+                      required
+                    />
+                  </div>
+                  <label className='text-[10px] font-bold tracking-widest uppercase text-gray-500 ml-1 mt-3'>
+                    Username
+                  </label>
+                  <div className='relative flex items-center'>
+                    <IoPersonCircle size={20} className="absolute left-4 text-gray-400" />
+                    <input 
+                      onChange={(e) => setUsername(e.target.value)} 
+                      value={username}
+                      type="text" 
+                      className='w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium placeholder:font-normal placeholder:text-gray-400'
+                      placeholder="e.g. johndoe" 
                       required
                     />
                   </div>
@@ -108,7 +123,7 @@ const LoginPage = () => {
               <>
                 <div className='flex flex-col gap-1.5'>
                   <label className='text-[10px] font-bold tracking-widest uppercase text-gray-500 ml-1'>
-                    Email Gateway
+                    Email Address
                   </label>
                   <div className='relative flex items-center'>
                     <IoMail size={18} className="absolute left-4 text-gray-400" />
@@ -125,7 +140,7 @@ const LoginPage = () => {
                 
                 <div className='flex flex-col gap-1.5'>
                   <label className='text-[10px] font-bold tracking-widest uppercase text-gray-500 ml-1'>
-                    Secure Key
+                    Password
                   </label>
                   <div className='relative flex items-center'>
                     <IoLockClosed size={18} className="absolute left-4 text-gray-400" />

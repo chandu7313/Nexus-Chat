@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
+  phoneNumber  String?   @unique
+  fullName     String
+  password     String
+  profilePic   String?   @default("")
+  bio          String?
+  lastSeen     DateTime  @default(now())
+  isOnline     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  chatParticipants ChatParticipant[]
+  messages         Message[]
+  messageStatuses  MessageStatus[]
+}
+
+model Chat {
+  id         String   @id @default(uuid())
+  isGroup    Boolean  @default(false)
+  name       String?
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  id                String   @id @default(uuid())
+  chatId            String
+  userId            String
+  role              String   @default("member") // "member" or "admin"
+  joinedAt          DateTime @default(now())
+  isMuted           Boolean  @default(false)
+  lastReadMessageId String?
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+}
+
+model Message {
+  id               String    @id @default(uuid())
+  chatId           String
+  senderId         String
+  content          String?
+  messageType      String    @default("text") // text, image, audio, document
+  mediaUrl         String?
+  replyToMessageId String?
+  createdAt        DateTime  @default(now())
+  editedAt         DateTime?
+  deletedAt        DateTime?
+
+  chat     Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  // Self-relation for replies
+  replyToMessage Message?  @relation("MessageReplies", fields: [replyToMessageId], references: [id], onDelete: SetNull)
+  replies        Message[] @relation("MessageReplies")
+
+  statuses MessageStatus[]
+}
+
+model MessageStatus {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  status    String   // "sent", "delivered", "read"
+  timestamp DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+}
