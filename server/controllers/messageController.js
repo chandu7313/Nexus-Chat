@@ -1,6 +1,7 @@
 import { prisma } from "../lib/db.js";
 import cloudinary from "../lib/cloudinary.js"
 import { io, userSocketMap } from "../server.js";
+import redisClient from "../lib/redis.js";
 
 // Fetch all users for the Contacts section
 export const getAllUsers = async (req, res) => {
@@ -50,14 +51,31 @@ export const getMessages = async (req, res) => {
         const actualChatId = chat.id;
         const isParticipant = chat.participants.find(p => p.userId === myId);
 
-        const messages = await prisma.message.findMany({
-            where: { chatId: actualChatId },
-            include: {
-                statuses: true,
-                sender: { select: { id: true, fullName: true, profilePic: true } }
-            },
-            orderBy: { createdAt: 'asc' }
-        });
+        let messages;
+
+        // Check Cache
+        if (redisClient) {
+            const cachedMsgs = await redisClient.get(`chat:${actualChatId}:messages`);
+            if (cachedMsgs) {
+                messages = JSON.parse(cachedMsgs);
+            }
+        }
+
+        if (!messages) {
+            messages = await prisma.message.findMany({
+                where: { chatId: actualChatId },
+                include: {
+                    statuses: true,
+                    sender: { select: { id: true, fullName: true, profilePic: true } }
+                },
+                orderBy: { createdAt: 'asc' }
+            });
+            
+            // Set Cache
+            if (redisClient) {
+                await redisClient.setex(`chat:${actualChatId}:messages`, 300, JSON.stringify(messages));
+            }
+        }
 
         // Mark messages as read for this user
         const unreadMessages = messages.filter(m => m.senderId !== myId && !m.statuses.some(s => s.userId === myId && s.status === 'read'));
@@ -84,6 +102,11 @@ export const getMessages = async (req, res) => {
                     io.to(senderSocketId).emit("messageRead", { messageId: msg.id, userId: myId, chatId: actualChatId });
                 }
             });
+
+            // Invalidate cache since message statuses have changed to 'read'
+            if (redisClient) {
+                await redisClient.del(`chat:${actualChatId}:messages`);
+            }
         }
 
         res.json({ success: true, messages });
@@ -197,6 +220,14 @@ export const sendMessage = async (req, res) => {
             }
         });
 
+        // Invalidate caches
+        if (redisClient) {
+            await redisClient.del(`chat:${actualChatId}:messages`);
+            const pipeline = redisClient.pipeline();
+            chat.participants.forEach(p => pipeline.del(`user:${p.userId}:chats`));
+            await pipeline.exec();
+        }
+
         res.json({ success: true, newMessage });
 
     } catch (error) {
@@ -229,6 +260,11 @@ export const deleteMessage = async (req, res) => {
                 io.to(userSocketMap[p.userId]).emit("messageDeleted", id);
             }
         });
+
+        // Invalidate message cache
+        if (redisClient) {
+            await redisClient.del(`chat:${message.chatId}:messages`);
+        }
 
         res.json({ success: true, messageId: id });
     } catch (error) {

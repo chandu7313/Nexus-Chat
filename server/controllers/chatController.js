@@ -1,9 +1,18 @@
 import { prisma } from "../lib/db.js";
+import redisClient from "../lib/redis.js";
 
 // Get all chats for the logged in user
 export const getChats = async (req, res) => {
     try {
         const userId = req.user.id;
+        
+        // Check Redis Cache
+        if (redisClient) {
+            const cachedChats = await redisClient.get(`user:${userId}:chats`);
+            if (cachedChats) {
+                return res.json({ success: true, chats: JSON.parse(cachedChats) });
+            }
+        }
         
         // Find all chats where this user is a participant
         const chats = await prisma.chat.findMany({
@@ -63,6 +72,11 @@ export const getChats = async (req, res) => {
                 updatedAt: chat.updatedAt
             };
         });
+
+        // Set Cache
+        if (redisClient) {
+            await redisClient.setex(`user:${userId}:chats`, 300, JSON.stringify(formattedChats));
+        }
 
         res.json({ success: true, chats: formattedChats });
     } catch (error) {
@@ -124,6 +138,11 @@ export const accessChat = async (req, res) => {
             }
         });
 
+        if (redisClient) {
+            await redisClient.del(`user:${currentUserId}:chats`);
+            await redisClient.del(`user:${otherUserId}:chats`);
+        }
+
         res.status(201).json({ success: true, chat: newChat });
     } catch (error) {
         console.log("Error in accessChat:", error.message);
@@ -169,6 +188,12 @@ export const createGroupChat = async (req, res) => {
                 }
             }
         });
+
+        if (redisClient) {
+            const pipeline = redisClient.pipeline();
+            users.forEach(u => pipeline.del(`user:${u}:chats`));
+            await pipeline.exec();
+        }
 
         res.status(201).json({ success: true, chat: groupChat });
     } catch (error) {
