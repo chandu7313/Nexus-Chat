@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: nexus-chat-backend
+    env: node
+    rootDir: server
+    buildCommand: npm install && npx prisma generate
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.x
+      - key: PORT
+        value: 5001
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nexus-chat-redis
+          property: connectionString
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+
+  - type: redis
+    name: nexus-chat-redis
+    ipAllowList: [] # Only allow internal access
+    plan: free
